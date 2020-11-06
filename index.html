@@ -1,5 +1,6 @@
 <script>
   const FPS = 1;
+  const SNAKE_OFFSET = 20;
   const CALCULATE_DIRECTION_AT_ONCE = 1;
   const apple = {
     x: 400,
@@ -40,7 +41,7 @@
       .getContext('2d');
 
     drawGameField(ctx)();
-    setInterval(gameLoop, FPS * 1000, ctx, apple, snake);
+    setInterval(gameLoop, 200, ctx, apple, snake);
   }
   const gameLoop = (ctx, apple, snake) => {
     drawGameField(ctx)();
@@ -87,7 +88,6 @@
   };
   const moveSnake = (snake) => {
     let directionChanges = 0;
-    const step = snake.size;
     snake.segments = snake.segments.map(segment => {
       if(snake.directionX !== segment.directionX || snake.directionY !== segment.directionY) {
         if (directionChanges !== CALCULATE_DIRECTION_AT_ONCE) {
@@ -98,13 +98,29 @@
       }
 
       return {
-        x: segment.x + segment.directionX * step,
-        y: segment.y + segment.directionY * step,
+        x: segment.x + segment.directionX * SNAKE_OFFSET,
+        y: segment.y + segment.directionY * SNAKE_OFFSET,
         directionX: segment.directionX,
         directionY: segment.directionY,
       }
     });
   }
+  const turnSnakeUp = (snake) => {
+    snake.directionY = -1;
+    snake.directionX = 0;
+  };
+  const turnSnakeDown = (snake) => {
+    snake.directionY = 1;
+    snake.directionX = 0;
+  };
+  const turnSnakeRight = (snake) => {
+    snake.directionY = 0;
+    snake.directionX = 1;
+  };
+  const turnSnakeLeft = (snake) => {
+    snake.directionY = 0;
+    snake.directionX = 1;
+  };
   window.addEventListener('load', initializeGame)
 </script>
 
