@@ -1,26 +1,36 @@
 <script>
   const FPS = 1;
+  const CALCULATE_DIRECTION_AT_ONCE = 1;
   const apple = {
     x: 400,
     y: 400,
     size: 20
   };
+
   const snake = {
-    x: 50,
-    y: 10,
     size: 20,
-    tail: [
+    directionX: 1,
+    directionY: 0,
+    segments: [
+      {
+        x: 50,
+        y: 10,
+        directionX: 1,
+        directionY: 0,
+      },
       {
         x: 30,
         y: 10,
+        directionX: 1,
+        directionY: 0,
       },
       {
         x: 10,
         y: 10,
+        directionX: 1,
+        directionY: 0,
       },
     ],
-    directionX: 1,
-    directionY: 0,
   };
 
   const initializeGame = () => {
@@ -30,13 +40,13 @@
       .getContext('2d');
 
     drawGameField(ctx)();
-
     setInterval(gameLoop, FPS * 1000, ctx, apple, snake);
   }
   const gameLoop = (ctx, apple, snake) => {
     drawGameField(ctx)();
     drawApple(ctx)(apple);
     drawSnake(ctx)(snake)
+    moveSnake(snake);
   };
 
   const createCanvas = () => {
@@ -60,22 +70,41 @@
     ctx.fillRect(0, 0, 800, 800)
   };
   const drawApple = ctx => ({ x, y, size }) => {
-    drawCircle(ctx)(x,y,size/2,'red')
+    drawCircle(ctx)(x, y, size / 2, 'red')
   }
   const drawSnake = ctx => ({
     x,
     y,
     size,
-    tail,
+    segments,
   }) => {
-    const renderSegment = (x,y) => {
-      drawCircle(ctx)(x,y, size/2,'lime')
+    const renderSegment = (x, y) => {
+      drawCircle(ctx)(x, y, size / 2, 'lime')
     }
-    renderSegment(x,y);
-    tail.forEach(({ x, y }) => {
-      renderSegment(x,y);
+    segments.forEach(({ x, y }) => {
+      renderSegment(x, y);
     })
   };
+  const moveSnake = (snake) => {
+    let directionChanges = 0;
+    const step = snake.size;
+    snake.segments = snake.segments.map(segment => {
+      if(snake.directionX !== segment.directionX || snake.directionY !== segment.directionY) {
+        if (directionChanges !== CALCULATE_DIRECTION_AT_ONCE) {
+          segment.directionX = snake.directionX;
+          segment.directionY = snake.directionY;
+          directionChanges += 1;
+        }
+      }
+
+      return {
+        x: segment.x + segment.directionX * step,
+        y: segment.y + segment.directionY * step,
+        directionX: segment.directionX,
+        directionY: segment.directionY,
+      }
+    });
+  }
   window.addEventListener('load', initializeGame)
 </script>
 
