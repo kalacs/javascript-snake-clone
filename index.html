@@ -1,243 +1,305 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8" />
-    <title>Gamedev Canvas Workshop</title>
-    <style>
-    	* { padding: 0; margin: 0; }
-    	canvas { background: #eee; display: block; margin: 0 auto; }
-    </style>
+  <meta charset="utf-8" />
+  <title>Gamedev Canvas Workshop</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    canvas {
+      background: #eee;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
 </head>
+
 <body>
 
-<canvas id="gameField" width="800" height="800"></canvas>
+  <canvas id="gameField" width="800" height="800"></canvas>
 
-<script>
-  /*
-  * Starting with the semicolon is in case whatever line of code above this example
-  * relied on automatic semicolon insertion (ASI). The browser could accidentally
-  * think this whole example continues from the previous line. The leading semicolon
-  * marks the beginning of our new line if the previous one was not empty or terminated.
-  *
-  * Let us also assume that SnakeGame is previously defined.
-  *
-  * SnakeGame.lastRender keeps track of the last provided requestAnimationFrame timestamp.
-  * SnakeGame.lastTick keeps track of the last update time. Always increments by tickLength.
-  * SnakeGame.tickLength is how frequently the game state updates. It is 20 Hz (50ms) here.
-  *
-  * timeSinceTick is the time between requestAnimationFrame callback and last update.
-  * numTicks is how many updates should have happened between these two rendered frames.
-  *
-  * render() is passed tFrame because it is assumed that the render method will calculate
-  *          how long it has been since the most recently passed update tick for 
-  *          extrapolation (purely cosmetic for fast devices). It draws the scene.
-  *
-  * update() calculates the game state as of a given point in time. It should always
-  *          increment by tickLength. It is the authority for game state. It is passed 
-  *          the DOMHighResTimeStamp for the time it represents (which, again, is always 
-  *          last update + SnakeGame.tickLength unless a pause feature is added, etc.)
-  *
-  * setInitialState() Performs whatever tasks are leftover before the mainloop must run.
-  *                   It is just a generic example function that you might have added.
-  */
-  
-  ;(function () {
-    const CALCULATE_DIRECTION_AT_ONCE = 1;
-    const SnakeGame = {};
-  
-    function main( tFrame ) {
-      SnakeGame.stopMain = window.requestAnimationFrame( main );
-      var nextTick = SnakeGame.lastTick + SnakeGame.tickLength;
-      var numTicks = 0;
-  
-      // If tFrame < nextTick then 0 ticks need to be updated (0 is default for numTicks).
-      // If tFrame = nextTick then 1 tick needs to be updated (and so forth).
-      // Note: As we mention in summary, you should keep track of how large numTicks is.
-      // If it is large, then either your game was asleep, or the machine cannot keep up.
-      if (tFrame > nextTick) {
-        var timeSinceTick = tFrame - SnakeGame.lastTick;
-        numTicks = Math.floor( timeSinceTick / SnakeGame.tickLength );
+  <script>
+    /*
+    * Starting with the semicolon is in case whatever line of code above this example
+    * relied on automatic semicolon insertion (ASI). The browser could accidentally
+    * think this whole example continues from the previous line. The leading semicolon
+    * marks the beginning of our new line if the previous one was not empty or terminated.
+    *
+    * Let us also assume that SnakeGame is previously defined.
+    *
+    * SnakeGame.lastRender keeps track of the last provided requestAnimationFrame timestamp.
+    * SnakeGame.lastTick keeps track of the last update time. Always increments by tickLength.
+    * SnakeGame.tickLength is how frequently the game state updates. It is 20 Hz (50ms) here.
+    *
+    * timeSinceTick is the time between requestAnimationFrame callback and last update.
+    * numTicks is how many updates should have happened between these two rendered frames.
+    *
+    * render() is passed tFrame because it is assumed that the render method will calculate
+    *          how long it has been since the most recently passed update tick for 
+    *          extrapolation (purely cosmetic for fast devices). It draws the scene.
+    *
+    * update() calculates the game state as of a given point in time. It should always
+    *          increment by tickLength. It is the authority for game state. It is passed 
+    *          the DOMHighResTimeStamp for the time it represents (which, again, is always 
+    *          last update + SnakeGame.tickLength unless a pause feature is added, etc.)
+    *
+    * setInitialState() Performs whatever tasks are leftover before the mainloop must run.
+    *                   It is just a generic example function that you might have added.
+    */
+
+    ; (function () {
+      const CALCULATE_DIRECTION_AT_ONCE = 1;
+      const SnakeGame = {};
+
+      function main(tFrame) {
+        SnakeGame.stopMain = window.requestAnimationFrame(main);
+        var nextTick = SnakeGame.lastTick + SnakeGame.tickLength;
+        var numTicks = 0;
+
+        // If tFrame < nextTick then 0 ticks need to be updated (0 is default for numTicks).
+        // If tFrame = nextTick then 1 tick needs to be updated (and so forth).
+        // Note: As we mention in summary, you should keep track of how large numTicks is.
+        // If it is large, then either your game was asleep, or the machine cannot keep up.
+        if (tFrame > nextTick) {
+          var timeSinceTick = tFrame - SnakeGame.lastTick;
+          numTicks = Math.floor(timeSinceTick / SnakeGame.tickLength);
+        }
+
+        queueUpdates(numTicks);
+        render(tFrame);
+        SnakeGame.lastRender = tFrame;
       }
-  
-      queueUpdates( numTicks );
-      render( tFrame );
-      SnakeGame.lastRender = tFrame;
-    }
-  
-    function queueUpdates( numTicks ) {
-      for(var i=0; i < numTicks; i++) {
-        SnakeGame.lastTick = SnakeGame.lastTick + SnakeGame.tickLength; // Now lastTick is this tick.
-        update( SnakeGame.lastTick );
+
+      function queueUpdates(numTicks) {
+        for (var i = 0; i < numTicks; i++) {
+          SnakeGame.lastTick = SnakeGame.lastTick + SnakeGame.tickLength; // Now lastTick is this tick.
+          update(SnakeGame.lastTick);
+        }
       }
-    }
-  
-    function update() {
-      moveSnake(SnakeGame.snake);
-    }
-  
-    function render() {
-      const ctx = SnakeGame.ctx;
-      ctx.clearRect(0,0,SnakeGame.canvasHeight,SnakeGame.canvasWidth);
-      ctx.save();
-      drawGameField(ctx)();
-      drawGrid(ctx);
-      drawApple(ctx)(SnakeGame.apple);
-      drawSnake(ctx)(SnakeGame.snake)
-      ctx.restore();
-    }
-  
-    function setInitialState() {  
-      SnakeGame.ctx = document
-        .getElementById('gameField')
-        .getContext('2d');
-  
-      window.addEventListener('keydown', ({ code })=> {
-        switch (code) {
-          case 'ArrowLeft':
-            turnSnakeLeft(SnakeGame.snake);
-            break;
+
+      function update() {
+        checkBorder(SnakeGame.snake);
+        moveSnake(SnakeGame.snake);
+      }
+
+      function render() {
+        const ctx = SnakeGame.ctx;
+        ctx.clearRect(0, 0, SnakeGame.canvasHeight, SnakeGame.canvasWidth);
+        ctx.save();
+        drawGameField(ctx)();
+        //drawGrid(ctx);
+        drawApple(ctx)(SnakeGame.apple);
+        drawSnake(ctx)(SnakeGame.snake)
+        ctx.restore();
+      }
+
+      function setInitialState() {
+        SnakeGame.ctx = document
+          .getElementById('gameField')
+          .getContext('2d');
+
+        window.addEventListener('keydown', ({ code }) => {
+          switch (code) {
+            case 'ArrowLeft':
+              turnSnakeLeft(SnakeGame.snake);
+              break;
             case 'ArrowRight':
-            turnSnakeRight(SnakeGame.snake);
-            break;
+              turnSnakeRight(SnakeGame.snake);
+              break;
             case 'ArrowUp':
-            turnSnakeUp(SnakeGame.snake);
-            break;
+              turnSnakeUp(SnakeGame.snake);
+              break;
             case 'ArrowDown':
-            turnSnakeDown(SnakeGame.snake);
-            break;
-        
-          default:
-            break;
-        }
-      })
-    }
-  
-    const drawCircle = ctx => (x, y, radius, color) => {
-      ctx.beginPath();
-      ctx.fillStyle = color;
-      ctx.arc(x, y, radius, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-    const drawGameField = (ctx) => () => {
-      ctx.fillStyle = 'black';
-      ctx.fillRect(0, 0, 800, 800)
-    };
-    const drawApple = ctx => ({ x, y, size }) => {
-      drawCircle(ctx)(x, y, size / 2, 'red')
-    }
-    const drawSnake = ctx => ({
-      x,
-      y,
-      size,
-      segments,
-    }) => {
-      const renderSegment = (x, y) => {
-        drawCircle(ctx)(x, y, size / 2, 'lime')
-      }
-      segments.forEach(({ x, y }) => {
-        renderSegment(x, y);
-      })
-    };
-  
-    function drawGrid(ctx) {
-      const height = 800;
-      const width = 800;
-      const offset = 10;
-      ctx.strokeStyle = 'white';
+              turnSnakeDown(SnakeGame.snake);
+              break;
 
-      for (let index = 1; index < width / offset; index++) {
-        ctx.beginPath();
-        ctx.moveTo(index * offset, 0);
-        ctx.lineTo(index * offset, height);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(0, index * offset);
-        ctx.lineTo(width, index * offset);
-        ctx.stroke();
-      }
-    }
-
-    const moveSnake = (snake) => {
-      const directionX = snake.directionX;
-      const directionY = snake.directionY;
-      const snakeOffset = snake.offset;
-      let directionChanges = 0;
-  
-      snake.segments = snake.segments.map(segment => {
-        if(directionX !== segment.directionX || directionY !== segment.directionY) {
-          if (directionChanges !== CALCULATE_DIRECTION_AT_ONCE) {
-            segment.directionX = directionX;
-            segment.directionY = directionY;
-            directionChanges += 1;
+            default:
+              break;
           }
+        })
+      }
+
+      function drawCircle(ctx) {
+        return (x, y, radius, color) => {
+          ctx.beginPath();
+          ctx.fillStyle = color;
+          ctx.arc(x, y, radius, 0, 2 * Math.PI);
+          ctx.fill();
         }
-  
-        return {
-          x: segment.x + segment.directionX * snakeOffset,
-          y: segment.y + segment.directionY * snakeOffset,
-          directionX: segment.directionX,
-          directionY: segment.directionY,
+      }
+
+      function drawGameField(ctx) {
+        return () => {
+          ctx.fillStyle = 'black';
+          ctx.fillRect(0, 0, 800, 800)
         }
-      });
-    };
-    const turnSnakeUp = (snake) => {
-      snake.directionY = -1;
-      snake.directionX = 0;
-    };
-    const turnSnakeDown = (snake) => {
-      snake.directionY = 1;
-      snake.directionX = 0;
-    };
-    const turnSnakeRight = (snake) => {
-      snake.directionY = 0;
-      snake.directionX = 1;
-    };
-    const turnSnakeLeft = (snake) => {
-      snake.directionY = 0;
-      snake.directionX = -1;
-    };
-  
-    SnakeGame.canvasHeight = 800;
-    SnakeGame.canvasWidth = 800;
-    SnakeGame.lastTick = performance.now();
-    SnakeGame.lastRender = SnakeGame.lastTick; // Pretend the first draw was on first update.
-    SnakeGame.tickLength = 100; // This sets your simulation to run at 20Hz (50ms)
-    SnakeGame.snake = {
-      size: 20,
-      offset: 20,
-      directionX: 1,
-      directionY: 0,
-      segments: [
-        {
-          x: 50,
-          y: 10,
-          directionX: 1,
-          directionY: 0,
-        },
-        {
-          x: 30,
-          y: 10,
-          directionX: 1,
-          directionY: 0,
-        },
-        {
-          x: 10,
-          y: 10,
-          directionX: 1,
-          directionY: 0,
-        },
-      ],
-    };
-    SnakeGame.apple = {
-      x: 410,
-      y: 410,
-      size: 20
-    };
-  
-    setInitialState();
-    main(performance.now()); // Start the cycle
-  })();
+      };
+
+      function drawApple(ctx){
+        return ({ x, y, size }) => {
+          drawCircle(ctx)(x, y, size / 2, 'red')
+        }
+      } 
+
+      const drawSnake = ctx => ({
+        x,
+        y,
+        size,
+        segments,
+      }) => {
+        const renderSegment = (x, y) => {
+          drawCircle(ctx)(x, y, size / 2, 'lime')
+        }
+        segments.forEach(({ x, y }) => {
+          renderSegment(x, y);
+        })
+      };
+
+      function drawGrid(ctx) {
+        const height = 800;
+        const width = 800;
+        const offset = 10;
+        ctx.strokeStyle = 'white';
+
+        for (let index = 1; index < width / offset; index++) {
+          ctx.beginPath();
+          ctx.moveTo(index * offset, 0);
+          ctx.lineTo(index * offset, height);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(0, index * offset);
+          ctx.lineTo(width, index * offset);
+          ctx.stroke();
+        }
+      }
+
+      const moveSnake = (snake) => {
+        const directionX = snake.directionX;
+        const directionY = snake.directionY;
+        const snakeOffset = snake.offset;
+        let directionChanges = 0;
+
+        snake.segments = snake.segments.map(segment => {
+          if (directionX !== segment.directionX || directionY !== segment.directionY) {
+            if (directionChanges !== CALCULATE_DIRECTION_AT_ONCE) {
+              segment.directionX = directionX;
+              segment.directionY = directionY;
+              directionChanges += 1;
+            }
+          }
+
+          return {
+            x: segment.x + segment.directionX * snakeOffset,
+            y: segment.y + segment.directionY * snakeOffset,
+            directionX: segment.directionX,
+            directionY: segment.directionY,
+          }
+        });
+      };
+      const turnSnakeUp = (snake) => {
+        snake.directionY = -1;
+        snake.directionX = 0;
+      };
+      const turnSnakeDown = (snake) => {
+        snake.directionY = 1;
+        snake.directionX = 0;
+      };
+      const turnSnakeRight = (snake) => {
+        snake.directionY = 0;
+        snake.directionX = 1;
+      };
+      const turnSnakeLeft = (snake) => {
+        snake.directionY = 0;
+        snake.directionX = -1;
+      };
+
+      function checkBorder(snake) {
+        snake.segments.forEach((segment, index) => {
+          if (snake.directionX === 1 && segment.x > 800) {
+            snake.segments[index] = {
+              ...segment,
+              x: -10,
+            }
+          }
+          if (snake.directionX === -1 && segment.x < 0) {
+            snake.segments[index] = {
+              ...segment,
+              x: 810,
+            }
+          }
+          if (snake.directionY === 1 && segment.y > 800) {
+            snake.segments[index] = {
+              ...segment,
+              y: -10,
+            }
+          }
+          if (snake.directionY === -1 && segment.y < 0) {
+            snake.segments[index] = {
+              ...segment,
+              y: 810,
+            }
+          }
+        })
+      }
+
+      SnakeGame.canvasHeight = 800;
+      SnakeGame.canvasWidth = 800;
+      SnakeGame.lastTick = performance.now();
+      SnakeGame.lastRender = SnakeGame.lastTick; // Pretend the first draw was on first update.
+      SnakeGame.tickLength = 100; // This sets your simulation to run at 20Hz (50ms)
+      SnakeGame.snake = {
+        size: 20,
+        offset: 20,
+        directionX: 1,
+        directionY: 0,
+        segments: [
+          {
+            x: 90,
+            y: 10,
+            directionX: 1,
+            directionY: 0,
+          },
+          {
+            x: 70,
+            y: 10,
+            directionX: 1,
+            directionY: 0,
+          },
+          {
+            x: 50,
+            y: 10,
+            directionX: 1,
+            directionY: 0,
+          },
+          {
+            x: 30,
+            y: 10,
+            directionX: 1,
+            directionY: 0,
+          },
+          {
+            x: 10,
+            y: 10,
+            directionX: 1,
+            directionY: 0,
+          },
+        ],
+      };
+      SnakeGame.apple = {
+        x: 410,
+        y: 410,
+        size: 20
+      };
+
+      setInitialState();
+      main(performance.now()); // Start the cycle
+    })();
   </script>
 </body>
+
 </html>
