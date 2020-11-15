@@ -52,7 +52,6 @@
     */
 
     ; (function () {
-      const CALCULATE_DIRECTION_AT_ONCE = 1;
       const SnakeGame = {};
 
       function main(tFrame) {
@@ -178,67 +177,62 @@
         }
       }
 
-      const moveSnake = (snake) => {
-        const directionX = snake.directionX;
-        const directionY = snake.directionY;
-        const snakeOffset = snake.offset;
-        let directionChanges = 0;
+      function moveSnake(snake) {
+        // move tail
+        const [ { x, y }, ] = snake.segments;
+        const tail = snake.segments.slice(0,snake.segments.length - 1);
+        // move head
+        const head = {};
+        head.x = x + snake.directions.x * snake.offset;
+        head.y = y + snake.directions.y * snake.offset;
+        const newSegments = [head, ...tail];
 
-        snake.segments = snake.segments.map(segment => {
-          if (directionX !== segment.directionX || directionY !== segment.directionY) {
-            if (directionChanges !== CALCULATE_DIRECTION_AT_ONCE) {
-              segment.directionX = directionX;
-              segment.directionY = directionY;
-              directionChanges += 1;
-            }
-          }
-
-          return {
-            x: segment.x + segment.directionX * snakeOffset,
-            y: segment.y + segment.directionY * snakeOffset,
-            directionX: segment.directionX,
-            directionY: segment.directionY,
-          }
-        });
+        for (let index = 0; index < snake.segments.length; index++) {
+          snake.segments[index] = newSegments[index];          
+        }
       };
+
       const turnSnakeUp = (snake) => {
-        snake.directionY = -1;
-        snake.directionX = 0;
+        snake.directions.y = -1;
+        snake.directions.x = 0;
       };
       const turnSnakeDown = (snake) => {
-        snake.directionY = 1;
-        snake.directionX = 0;
+        snake.directions.y = 1;
+        snake.directions.x = 0;
       };
       const turnSnakeRight = (snake) => {
-        snake.directionY = 0;
-        snake.directionX = 1;
+        snake.directions.y = 0;
+        snake.directions.x = 1;
       };
       const turnSnakeLeft = (snake) => {
-        snake.directionY = 0;
-        snake.directionX = -1;
+        snake.directions.y = 0;
+        snake.directions.x = -1;
       };
 
       function checkBorder(snake) {
+        const directionX = snake.directions.x;
+        const directionY = snake.directions.y;
+        
         snake.segments.forEach((segment, index) => {
-          if (snake.directionX === 1 && segment.x > 800) {
+          if (directionX === 1 && segment.x > 800) {
             snake.segments[index] = {
               ...segment,
               x: -10,
             }
           }
-          if (snake.directionX === -1 && segment.x < 0) {
+          if (directionX === -1 && segment.x < 0) {
             snake.segments[index] = {
               ...segment,
               x: 810,
             }
           }
-          if (snake.directionY === 1 && segment.y > 800) {
+          if (directionY === 1 && segment.y > 800) {
             snake.segments[index] = {
               ...segment,
               y: -10,
             }
           }
-          if (snake.directionY === -1 && segment.y < 0) {
+          if (directionY === -1 && segment.y < 0) {
             snake.segments[index] = {
               ...segment,
               y: 810,
@@ -255,38 +249,30 @@
       SnakeGame.snake = {
         size: 20,
         offset: 20,
-        directionX: 1,
-        directionY: 0,
+        directions: {
+          x: 1,
+          y: 0,
+        },
         segments: [
           {
             x: 90,
             y: 10,
-            directionX: 1,
-            directionY: 0,
           },
           {
             x: 70,
             y: 10,
-            directionX: 1,
-            directionY: 0,
           },
           {
             x: 50,
             y: 10,
-            directionX: 1,
-            directionY: 0,
           },
           {
             x: 30,
             y: 10,
-            directionX: 1,
-            directionY: 0,
           },
           {
             x: 10,
             y: 10,
-            directionX: 1,
-            directionY: 0,
           },
         ],
       };
