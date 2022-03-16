@@ -81,6 +81,7 @@
       }
 
       function update() {
+        spawnApple(SnakeGame.apple);
         checkBorder(SnakeGame.snake);
         moveSnake(SnakeGame.snake);
         eatApple(SnakeGame.snake, SnakeGame.apple);
@@ -268,6 +269,24 @@
           x: offsetX > 0 ? 1 : (offsetX < 0 ? -1 : 0),
           y: offsetY > 0 ? 1 : (offsetY < 0 ? -1 : 0),
         }
+      }
+
+      function spawnApple(apple) {
+
+        if (apple.x > 0) {
+          return;
+        }
+
+        const width = 800;
+        const randomX = (getRandomInt(40) * apple.size) + (apple.size / 2);
+        const randomY = (getRandomInt(40) * apple.size) + (apple.size / 2);
+        apple.x = randomX;
+        apple.y = randomY;
+      }
+
+
+      function getRandomInt(max) {
+        return Math.floor(Math.random() * Math.floor(max));
       }
 
       SnakeGame.canvasHeight = 800;
